@@ -30,9 +30,12 @@
               "allowedValues": [
                 { "label": "West US", "value": "westus" },
                 { "label": "West US 2", "value": "westus2" },
+                { "label": "West US 3", "value": "westus3" },
                 { "label": "East US", "value": "eastus" },
                 { "label": "East US 2", "value": "eastus2" },
-                { "label": "Central US", "value": "centralus" }
+                { "label": "Central US", "value": "centralus" },
+                { "label": "West Europe", "value": "westeurope" },
+                { "label": "North Europe", "value": "northeurope" }
               ]
             }
           },
@@ -41,33 +44,28 @@
             "type": "Microsoft.Common.TextBox",
             "label": "User Assigned Managed Identity name",
             "defaultValue": "xcloud-demo-uami",
-            "constraints": { "required": true }
+            "constraints": {
+              "required": true,
+              "regex": "^[a-zA-Z0-9-]{3,128}$",
+              "validationMessage": "3-128 chars: letters, numbers, hyphen."
+            }
           }
         ]
       },
       {
         "name": "awsTrust",
-        "label": "AWS trust (federated credential)",
+        "label": "AWS trust",
         "elements": [
-          {
-            "name": "issuer",
-            "type": "Microsoft.Common.TextBox",
-            "label": "OIDC issuer URL",
-            "defaultValue": "https://sts.amazonaws.com",
-            "constraints": { "required": true }
-          },
           {
             "name": "subject",
             "type": "Microsoft.Common.TextBox",
-            "label": "Subject (AWS IAM role ARN)",
-            "constraints": { "required": true }
-          },
-          {
-            "name": "audience",
-            "type": "Microsoft.Common.TextBox",
-            "label": "Audience",
-            "defaultValue": "api://AzureADTokenExchange",
-            "constraints": { "required": true }
+            "label": "AWS IAM role ARN (subject)",
+            "toolTip": "Example: arn:aws:iam::123456789012:role/MyRole",
+            "constraints": {
+              "required": true,
+              "regex": "^arn:aws:iam::[0-9]{12}:role/.+",
+              "validationMessage": "Expected: arn:aws:iam::123456789012:role/RoleName"
+            }
           }
         ]
       }
@@ -76,10 +74,7 @@
       "resourceGroupName": "[steps('settings').resourceGroupName]",
       "resourceGroupLocation": "[steps('settings').resourceGroupLocation]",
       "uamiName": "[steps('settings').uamiName]",
-      "issuer": "[steps('awsTrust').issuer]",
-      "subject": "[steps('awsTrust').subject]",
-      "audiences": "[createArray(steps('awsTrust').audience)]",
-      "deploymentLocation": "[steps('settings').resourceGroupLocation]"
+      "subject": "[steps('awsTrust').subject]"
     }
   }
 }
