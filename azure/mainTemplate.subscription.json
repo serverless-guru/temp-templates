@@ -89,7 +89,7 @@
             {
               "type": "Microsoft.Authorization/roleAssignments",
               "apiVersion": "2022-04-01",
-              "name": "[guid(resourceGroup().id, variables('readerRoleDefinitionId'), reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('uamiName')), '2023-01-31').principalId)]",
+              "name": "[guid(resourceGroup().id, variables('readerRoleDefinitionId'), parameters('uamiName'))]",
               "dependsOn": [
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('uamiName'))]"
               ],
