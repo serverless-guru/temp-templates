@@ -112,8 +112,7 @@
           }
         }
       },
-      "resourceGroup": "[parameters('resourceGroupName')]",
-      "location": "[variables('effectiveLocation')]"
+      "resourceGroup": "[parameters('resourceGroupName')]"
     }
   ],
   "outputs": {
