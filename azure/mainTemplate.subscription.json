@@ -5,10 +5,6 @@
     "resourceGroupName": {
       "type": "string"
     },
-    "resourceGroupLocation": {
-      "type": "string",
-      "defaultValue": "westus"
-    },
     "uamiName": {
       "type": "string"
     },
@@ -24,6 +20,7 @@
     }
   },
   "variables": {
+    "effectiveLocation": "[deployment().location]",
     "readerRoleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7",
     "awsIssuer": "https://sts.amazonaws.com",
     "azureAudience": "api://AzureADTokenExchange"
@@ -120,6 +117,10 @@
     }
   ],
   "outputs": {
+    "effectiveLocation": {
+      "type": "string",
+      "value": "[variables('effectiveLocation')]"
+    },
     "resourceGroupName": {
       "type": "string",
       "value": "[parameters('resourceGroupName')]"

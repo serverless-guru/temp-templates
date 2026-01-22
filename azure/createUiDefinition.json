@@ -21,25 +21,6 @@
             }
           },
           {
-            "name": "resourceGroupLocation",
-            "type": "Microsoft.Common.DropDown",
-            "label": "Resource group location",
-            "defaultValue": "westus",
-            "constraints": { "required": true },
-            "options": {
-              "allowedValues": [
-                { "label": "West US", "value": "westus" },
-                { "label": "West US 2", "value": "westus2" },
-                { "label": "West US 3", "value": "westus3" },
-                { "label": "East US", "value": "eastus" },
-                { "label": "East US 2", "value": "eastus2" },
-                { "label": "Central US", "value": "centralus" },
-                { "label": "West Europe", "value": "westeurope" },
-                { "label": "North Europe", "value": "northeurope" }
-              ]
-            }
-          },
-          {
             "name": "uamiName",
             "type": "Microsoft.Common.TextBox",
             "label": "User Assigned Managed Identity name",
