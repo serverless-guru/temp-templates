@@ -1,0 +1,170 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "deploymentLocation": {
+      "type": "string",
+      "defaultValue": "westus"
+    },
+    "resourceGroupName": {
+      "type": "string"
+    },
+    "resourceGroupLocation": {
+      "type": "string",
+      "defaultValue": "westus"
+    },
+    "uamiName": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "federatedCredentialName": {
+      "type": "string",
+      "defaultValue": "aws-oif"
+    },
+    "issuer": {
+      "type": "string"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "audiences": {
+      "type": "array",
+      "defaultValue": [
+        "api://AzureADTokenExchange"
+      ]
+    }
+  },
+  "variables": {
+    "readerRoleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2022-09-01",
+      "name": "[parameters('resourceGroupName')]",
+      "location": "[parameters('resourceGroupLocation')]"
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "rg-scoped-resources",
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('resourceGroupLocation')]"
+          },
+          "uamiName": {
+            "value": "[parameters('uamiName')]"
+          },
+          "ficName": {
+            "value": "[parameters('federatedCredentialName')]"
+          },
+          "issuer": {
+            "value": "[parameters('issuer')]"
+          },
+          "subject": {
+            "value": "[parameters('subject')]"
+          },
+          "audiences": {
+            "value": "[parameters('audiences')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "uamiName": {
+              "type": "string"
+            },
+            "ficName": {
+              "type": "string"
+            },
+            "issuer": {
+              "type": "string"
+            },
+            "subject": {
+              "type": "string"
+            },
+            "audiences": {
+              "type": "array"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+              "apiVersion": "2023-01-31",
+              "name": "[parameters('uamiName')]",
+              "location": "[parameters('location')]"
+            },
+            {
+              "type": "Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials",
+              "apiVersion": "2023-01-31",
+              "name": "[format('{0}/{1}', parameters('uamiName'), parameters('ficName'))]",
+              "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('uamiName'))]"
+              ],
+              "properties": {
+                "issuer": "[parameters('issuer')]",
+                "subject": "[parameters('subject')]",
+                "audiences": "[parameters('audiences')]"
+              }
+            }
+          ],
+          "outputs": {
+            "principalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('uamiName')), '2023-01-31').principalId]"
+            },
+            "clientId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('uamiName')), '2023-01-31').clientId]"
+            }
+          }
+        }
+      },
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "location": "[parameters('deploymentLocation')]"
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(subscription().id, variables('readerRoleDefinitionId'), reference('rg-scoped-resources').outputs.principalId.value)]",
+      "dependsOn": [
+        "rg-scoped-resources"
+      ],
+      "properties": {
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('readerRoleDefinitionId'))]",
+        "principalId": "[reference('rg-scoped-resources').outputs.principalId.value]",
+        "principalType": "ServicePrincipal"
+      }
+    }
+  ],
+  "outputs": {
+    "resourceGroupName": {
+      "type": "string",
+      "value": "[parameters('resourceGroupName')]"
+    },
+    "uamiClientId": {
+      "type": "string",
+      "value": "[reference('rg-scoped-resources').outputs.clientId.value]"
+    },
+    "uamiPrincipalId": {
+      "type": "string",
+      "value": "[reference('rg-scoped-resources').outputs.principalId.value]"
+    },
+    "portalDeployUrlHint": {
+      "type": "string",
+      "value": "[format('Template spec wizard link format: https://portal.azure.com/#create/Microsoft.Template/templateSpecVersionId/{0}', '...urlencoded templatespec version id...')]"
+    }
+  }
+}

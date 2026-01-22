@@ -1,0 +1,137 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2021-09-09/uiFormDefinition.schema.json#",
+  "view": {
+    "kind": "Form",
+    "properties": {
+      "title": "AWS -> Azure Workload Identity",
+      "steps": [
+        {
+          "name": "settings",
+          "label": "Azure-side identity",
+          "elements": [
+            {
+              "name": "resourceGroupName",
+              "type": "Microsoft.Common.TextBox",
+              "label": "Resource group name",
+              "defaultValue": "xcloud-demo-rg",
+              "toolTip": "A new resource group will be created to hold the managed identity and federated credential.",
+              "constraints": {
+                "required": true,
+                "regex": "^[-\\w\\._\\(\\)]+$",
+                "validationMessage": "Use letters, numbers, hyphen, underscore, dot, or parentheses."
+              }
+            },
+            {
+              "name": "resourceGroupLocation",
+              "type": "Microsoft.Common.DropDown",
+              "label": "Resource group location",
+              "defaultValue": "westus",
+              "toolTip": "Choose an Azure region for the resource group and identity.",
+              "constraints": {
+                "required": true
+              },
+              "options": {
+                "allowedValues": [
+                  {
+                    "label": "West US",
+                    "value": "westus"
+                  },
+                  {
+                    "label": "West US 2",
+                    "value": "westus2"
+                  },
+                  {
+                    "label": "West US 3",
+                    "value": "westus3"
+                  },
+                  {
+                    "label": "East US",
+                    "value": "eastus"
+                  },
+                  {
+                    "label": "East US 2",
+                    "value": "eastus2"
+                  },
+                  {
+                    "label": "Central US",
+                    "value": "centralus"
+                  },
+                  {
+                    "label": "West Europe",
+                    "value": "westeurope"
+                  },
+                  {
+                    "label": "North Europe",
+                    "value": "northeurope"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "uamiName",
+              "type": "Microsoft.Common.TextBox",
+              "label": "User Assigned Managed Identity name",
+              "defaultValue": "xcloud-demo-uami",
+              "constraints": {
+                "required": true,
+                "regex": "^[a-zA-Z0-9-]{3,128}$",
+                "validationMessage": "3-128 chars: letters, numbers, hyphen."
+              }
+            }
+          ]
+        },
+        {
+          "name": "awsTrust",
+          "label": "AWS trust (federated credential)",
+          "elements": [
+            {
+              "name": "issuer",
+              "type": "Microsoft.Common.TextBox",
+              "label": "OIDC issuer URL",
+              "defaultValue": "https://sts.amazonaws.com",
+              "toolTip": "Issuer URL from AWS OIDC / Outbound Identity Federation.",
+              "constraints": {
+                "required": true,
+                "regex": "^https://.+",
+                "validationMessage": "Must be an https:// URL."
+              }
+            },
+            {
+              "name": "subject",
+              "type": "Microsoft.Common.TextBox",
+              "label": "Subject (AWS IAM role ARN)",
+              "toolTip": "Commonly the AWS IAM role ARN that will be allowed to exchange tokens into Azure.",
+              "constraints": {
+                "required": true,
+                "regex": "^arn:aws:iam::[0-9]{12}:role/.+",
+                "validationMessage": "Expected: arn:aws:iam::123456789012:role/RoleName"
+              }
+            },
+            {
+              "name": "audience",
+              "type": "Microsoft.Common.TextBox",
+              "label": "Audience",
+              "defaultValue": "api://AzureADTokenExchange",
+              "toolTip": "Audience claim used for Azure workload identity federation.",
+              "constraints": {
+                "required": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    "outputs": {
+      "parameters": {
+        "resourceGroupName": "[steps('settings').resourceGroupName]",
+        "resourceGroupLocation": "[steps('settings').resourceGroupLocation]",
+        "uamiName": "[steps('settings').uamiName]",
+        "issuer": "[steps('awsTrust').issuer]",
+        "subject": "[steps('awsTrust').subject]",
+        "audiences": "[createArray(steps('awsTrust').audience)]",
+        "deploymentLocation": "[steps('settings').resourceGroupLocation]"
+      }
+    }
+  }
+}
