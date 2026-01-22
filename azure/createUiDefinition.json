@@ -72,7 +72,6 @@
     ],
     "outputs": {
       "resourceGroupName": "[steps('settings').resourceGroupName]",
-      "resourceGroupLocation": "[steps('settings').resourceGroupLocation]",
       "uamiName": "[steps('settings').uamiName]",
       "subject": "[steps('awsTrust').subject]"
     }

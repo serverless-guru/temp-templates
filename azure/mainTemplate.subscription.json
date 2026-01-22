@@ -33,7 +33,7 @@
       "type": "Microsoft.Resources/resourceGroups",
       "apiVersion": "2022-09-01",
       "name": "[parameters('resourceGroupName')]",
-      "location": "[parameters('resourceGroupLocation')]"
+      "location": "[variables('effectiveLocation')]"
     },
     {
       "type": "Microsoft.Resources/deployments",
@@ -48,7 +48,7 @@
           "scope": "inner"
         },
         "parameters": {
-          "location": { "value": "[parameters('resourceGroupLocation')]" },
+          "location": { "value": "[variables('effectiveLocation')]" },
           "uamiName": { "value": "[parameters('uamiName')]" },
           "ficName": { "value": "[parameters('federatedCredentialName')]" },
           "subject": { "value": "[parameters('subject')]" }
@@ -116,7 +116,7 @@
         }
       },
       "resourceGroup": "[parameters('resourceGroupName')]",
-      "location": "[parameters('resourceGroupLocation')]"
+      "location": "[variables('effectiveLocation')]"
     }
   ],
   "outputs": {
