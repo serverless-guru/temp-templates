@@ -1,7 +1,7 @@
 import urllib.parse
 
 template = "https://raw.githubusercontent.com/serverless-guru/temp-templates/main/azure/mainTemplate.subscription.json"
-ui = "https://raw.githubusercontent.com/serverless-guru/temp-templates/main/azure/uiFormDefinition.json"
+ui = "https://raw.githubusercontent.com/serverless-guru/temp-templates/main/azure/createUiDefinition.json"
 
 print(
   "https://portal.azure.com/#create/Microsoft.Template/uri/"
