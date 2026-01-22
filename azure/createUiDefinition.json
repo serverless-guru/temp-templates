@@ -1,136 +1,80 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/uiFormDefinition.json#",
+  "handler": "Microsoft.Azure.CreateUIDef",
+  "version": "1.0.0",
   "parameters": {
-    "resourceGroupName": {
-      "type": "string"
-    },
-    "resourceGroupLocation": {
-      "type": "string",
-      "defaultValue": "westus"
-    },
-    "uamiName": {
-      "type": "string"
-    },
-    "federatedCredentialName": {
-      "type": "string",
-      "defaultValue": "aws-oif"
-    },
-    "subject": {
-      "type": "string",
-      "metadata": {
-        "description": "AWS IAM role ARN allowed to federate into Azure. Example: arn:aws:iam::123456789012:role/MyRole"
-      }
-    }
-  },
-  "variables": {
-    "readerRoleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7",
-    "awsIssuer": "https://sts.amazonaws.com",
-    "azureAudience": "api://AzureADTokenExchange"
-  },
-  "resources": [
-    {
-      "type": "Microsoft.Resources/resourceGroups",
-      "apiVersion": "2022-09-01",
-      "name": "[parameters('resourceGroupName')]",
-      "location": "[parameters('resourceGroupLocation')]"
-    },
-    {
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "2022-09-01",
-      "name": "rg-scoped-resources",
-      "dependsOn": [
-        "[resourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
-      ],
-      "properties": {
-        "mode": "Incremental",
-        "expressionEvaluationOptions": {
-          "scope": "inner"
-        },
-        "parameters": {
-          "location": { "value": "[parameters('resourceGroupLocation')]" },
-          "uamiName": { "value": "[parameters('uamiName')]" },
-          "ficName": { "value": "[parameters('federatedCredentialName')]" },
-          "subject": { "value": "[parameters('subject')]" }
-        },
-        "template": {
-          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-          "contentVersion": "1.0.0.0",
-          "parameters": {
-            "location": { "type": "string" },
-            "uamiName": { "type": "string" },
-            "ficName": { "type": "string" },
-            "subject": { "type": "string" }
-          },
-          "variables": {
-            "readerRoleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7",
-            "awsIssuer": "https://sts.amazonaws.com",
-            "azureAudience": "api://AzureADTokenExchange"
-          },
-          "resources": [
-            {
-              "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
-              "apiVersion": "2023-01-31",
-              "name": "[parameters('uamiName')]",
-              "location": "[parameters('location')]"
-            },
-            {
-              "type": "Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials",
-              "apiVersion": "2023-01-31",
-              "name": "[format('{0}/{1}', parameters('uamiName'), parameters('ficName'))]",
-              "dependsOn": [
-                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('uamiName'))]"
-              ],
-              "properties": {
-                "issuer": "[variables('awsIssuer')]",
-                "subject": "[parameters('subject')]",
-                "audiences": [
-                  "[variables('azureAudience')]"
-                ]
-              }
-            },
-            {
-              "type": "Microsoft.Authorization/roleAssignments",
-              "apiVersion": "2022-04-01",
-              "name": "[guid(resourceGroup().id, variables('readerRoleDefinitionId'), reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('uamiName')), '2023-01-31').principalId)]",
-              "dependsOn": [
-                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('uamiName'))]"
-              ],
-              "properties": {
-                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('readerRoleDefinitionId'))]",
-                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('uamiName')), '2023-01-31').principalId]",
-                "principalType": "ServicePrincipal"
-              }
+    "basics": [],
+    "steps": [
+      {
+        "name": "settings",
+        "label": "Azure-side identity",
+        "elements": [
+          {
+            "name": "resourceGroupName",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Resource group name",
+            "defaultValue": "xcloud-demo-rg",
+            "constraints": {
+              "required": true,
+              "regex": "^[-\\w\\._\\(\\)]+$",
+              "validationMessage": "Use letters, numbers, hyphen, underscore, dot, or parentheses."
             }
-          ],
-          "outputs": {
-            "principalId": {
-              "type": "string",
-              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('uamiName')), '2023-01-31').principalId]"
-            },
-            "clientId": {
-              "type": "string",
-              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('uamiName')), '2023-01-31').clientId]"
+          },
+          {
+            "name": "resourceGroupLocation",
+            "type": "Microsoft.Common.DropDown",
+            "label": "Resource group location",
+            "defaultValue": "westus",
+            "constraints": { "required": true },
+            "options": {
+              "allowedValues": [
+                { "label": "West US", "value": "westus" },
+                { "label": "West US 2", "value": "westus2" },
+                { "label": "West US 3", "value": "westus3" },
+                { "label": "East US", "value": "eastus" },
+                { "label": "East US 2", "value": "eastus2" },
+                { "label": "Central US", "value": "centralus" },
+                { "label": "West Europe", "value": "westeurope" },
+                { "label": "North Europe", "value": "northeurope" }
+              ]
+            }
+          },
+          {
+            "name": "uamiName",
+            "type": "Microsoft.Common.TextBox",
+            "label": "User Assigned Managed Identity name",
+            "defaultValue": "xcloud-demo-uami",
+            "constraints": {
+              "required": true,
+              "regex": "^[a-zA-Z0-9-]{3,128}$",
+              "validationMessage": "3-128 chars: letters, numbers, hyphen."
             }
           }
-        }
+        ]
       },
-      "resourceGroup": "[parameters('resourceGroupName')]",
-      "location": "[parameters('resourceGroupLocation')]"
-    }
-  ],
-  "outputs": {
-    "resourceGroupName": {
-      "type": "string",
-      "value": "[parameters('resourceGroupName')]"
-    },
-    "uamiClientId": {
-      "type": "string",
-      "value": "[reference('rg-scoped-resources').outputs.clientId.value]"
-    },
-    "uamiPrincipalId": {
-      "type": "string",
-      "value": "[reference('rg-scoped-resources').outputs.principalId.value]"
+      {
+        "name": "awsTrust",
+        "label": "AWS trust",
+        "elements": [
+          {
+            "name": "subject",
+            "type": "Microsoft.Common.TextBox",
+            "label": "AWS IAM role ARN (subject)",
+            "toolTip": "Example: arn:aws:iam::123456789012:role/MyRole",
+            "constraints": {
+              "required": true,
+              "regex": "^arn:aws:iam::[0-9]{12}:role/.+",
+              "validationMessage": "Expected: arn:aws:iam::123456789012:role/RoleName"
+            }
+          }
+        ]
+      }
+    ],
+    "outputs": {
+      "resourceGroupName": "[steps('settings').resourceGroupName]",
+      "resourceGroupLocation": "[steps('settings').resourceGroupLocation]",
+      "uamiName": "[steps('settings').uamiName]",
+      "subject": "[steps('awsTrust').subject]"
     }
   }
 }
